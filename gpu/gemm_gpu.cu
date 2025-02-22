@@ -104,24 +104,114 @@ void gemm_gpu_o0(float* A, float* B, float* C, int M, int N, int K)
 
 // The scafolding for optimized GEMM implementations
 __global__ void gemm_gpu_o1_kernel(float* A, float* B, float *C, int M, int N, int K) {
+	// For C, the Row is M, Col is N, for A, row is M, col is K, For B Row is K, Col is N.
+	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int Row = blockIdx.y * blockDim.y + threadIdx.y;
+
+	if ((Row < M) && (Col < N)) {
+		float Pvalue = 0;
+ 		for (int k = 0; k < K; ++k)
+ 			Pvalue += A[Row*K+k] * B[k*N+Col];
+	  	C[Row * N + Col] = Pvalue;
+	}
+
 }
+
+#define BlockW 16
 void gemm_gpu_o1(float* A, float* B, float* C, int M, int N, int K)
 {
 	// Init block and grid size
+
+	dim3 dimGrid(ceil((1.0*M)/BlockW),ceil((1.0*N)/BlockW), 1);
+	dim3 dimBlock(BlockW, BlockW, 1);
+	gemm_gpu_o1_kernel<<<dimGrid, dimBlock>>>(A, B, C, M, N, K);
+
 }
 
+#define TILE_WIDTH2 16
 __global__ void gemm_gpu_o2_kernel(float* A, float* B, float *C, int M, int N, int K) {
+
+	__shared__ float subTileA[TILE_WIDTH2][TILE_WIDTH2];
+	__shared__ float subTileB[TILE_WIDTH2][TILE_WIDTH2];
+	int bx = blockIdx.x;  int by = blockIdx.y;
+	int tx = threadIdx.x; int ty = threadIdx.y;
+
+	int Row = by * TILE_WIDTH + ty;
+	int Col = bx * TILE_WIDTH + tx;
+	float Pvalue = 0;
+
+	//big loop iterate tile by tile
+	for (int q = 0; q < (ceil((float)K/TILE_WIDTH2)); ++q) {
+       // Collaborative loading of M and N tiles into shared memory
+		if (Row < M && (q*TILE_WIDTH2 + tx) < K)
+			subTileA[ty][tx] = M[Row*K + (q*TILE_WIDTH2+tx)];
+		else
+			subTileA[ty][tx] = 0;
+
+		if (Col < N && (q*TILE_WIDTH2 + ty) < K)
+			subTileB[ty][tx] = N[(q*TILE_WIDTH2+ty)*N+Col];
+		else
+			subTileB[ty][tx] = 0;
+		__syncthreads();  //must needed for correct tile loading instead of overload
+		for (int k = 0; k < TILE_WIDTH2; ++k)
+			Pvalue += subTileM[ty][k] * subTileN[k][tx];
+		__syncthreads();  //make sure everyone complete calculate
+	}
+	if(Row < M && Col < N)
+		C[Row*N+Col] = Pvalue;
+
 }
+
 void gemm_gpu_o2(float* A, float* B, float* C, int M, int N, int K)
 {
 	// Init block and grid size
+	dim3 dimGrid(ceil((1.0*M)/BlockW),ceil((1.0*N)/BlockW), 1);
+	dim3 dimBlock(BlockW, BlockW, 1);
+	gemm_gpu_o2_kernel<<<dimGrid, dimBlock>>>(A, B, C, M, N, K);
 }
 
+
+#define BlockW3 32
+#define TILE_WIDTH3 32
+
 __global__ void gemm_gpu_o3_kernel(float* A, float* B, float *C, int M, int N, int K) {
+	//code is the same as o2 kernel, but with hyperparameter change...
+	__shared__ float subTileA[TILE_WIDTH3][TILE_WIDTH3];
+	__shared__ float subTileB[TILE_WIDTH3][TILE_WIDTH3];
+	int bx = blockIdx.x;  int by = blockIdx.y;
+	int tx = threadIdx.x; int ty = threadIdx.y;
+
+	int Row = by * TILE_WIDTH + ty;
+	int Col = bx * TILE_WIDTH + tx;
+	float Pvalue = 0;
+
+	//big loop iterate tile by tile
+	for (int q = 0; q < (ceil((float)K/TILE_WIDTH3)); ++q) {
+       // Collaborative loading of M and N tiles into shared memory
+		if (Row < M && (q*TILE_WIDTH3 + tx) < K)
+			subTileA[ty][tx] = M[Row*K + (q*TILE_WIDTH3+tx)];
+		else
+			subTileA[ty][tx] = 0;
+
+		if (Col < N && (q*TILE_WIDTH3 + ty) < K)
+			subTileB[ty][tx] = N[(q*TILE_WIDTH3+ty)*N+Col];
+		else
+			subTileB[ty][tx] = 0;
+		__syncthreads();  //must needed for correct tile loading instead of overload
+		for (int k = 0; k < TILE_WIDTH3; ++k)
+			Pvalue += subTileM[ty][k] * subTileN[k][tx];
+		__syncthreads();  //make sure everyone complete calculate
+	}
+	if(Row < M && Col < N)
+		C[Row*N+Col] = Pvalue;
+
 }
 void gemm_gpu_o3(float* A, float* B, float* C, int M, int N, int K)
 {
 	// Init block and grid size
+	dim3 dimGrid(ceil((1.0*M)/BlockW3),ceil((1.0*N)/BlockW3), 1);
+	dim3 dimBlock(BlockW3, BlockW3, 1);
+	gemm_gpu_o3_kernel<<<dimGrid, dimBlock>>>(A, B, C, M, N, K);
 }
 
 
