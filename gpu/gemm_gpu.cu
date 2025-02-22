@@ -136,25 +136,25 @@ __global__ void gemm_gpu_o2_kernel(float* A, float* B, float *C, int M, int N, i
 	int bx = blockIdx.x;  int by = blockIdx.y;
 	int tx = threadIdx.x; int ty = threadIdx.y;
 
-	int Row = by * TILE_WIDTH + ty;
-	int Col = bx * TILE_WIDTH + tx;
+	int Row = by * TILE_WIDTH2 + ty;
+	int Col = bx * TILE_WIDTH2 + tx;
 	float Pvalue = 0;
 
 	//big loop iterate tile by tile
 	for (int q = 0; q < (ceil((float)K/TILE_WIDTH2)); ++q) {
-       // Collaborative loading of M and N tiles into shared memory
+       // Collaborative loading of AB tiles into shared memory
 		if (Row < M && (q*TILE_WIDTH2 + tx) < K)
-			subTileA[ty][tx] = M[Row*K + (q*TILE_WIDTH2+tx)];
+			subTileA[ty][tx] = A[Row*K + (q*TILE_WIDTH2+tx)];
 		else
 			subTileA[ty][tx] = 0;
 
 		if (Col < N && (q*TILE_WIDTH2 + ty) < K)
-			subTileB[ty][tx] = N[(q*TILE_WIDTH2+ty)*N+Col];
+			subTileB[ty][tx] = B[(q*TILE_WIDTH2+ty)*N+Col];
 		else
 			subTileB[ty][tx] = 0;
 		__syncthreads();  //must needed for correct tile loading instead of overload
 		for (int k = 0; k < TILE_WIDTH2; ++k)
-			Pvalue += subTileM[ty][k] * subTileN[k][tx];
+			Pvalue += subTileA[ty][k] * subTileB[k][tx];
 		__syncthreads();  //make sure everyone complete calculate
 	}
 	if(Row < M && Col < N)
@@ -187,19 +187,19 @@ __global__ void gemm_gpu_o3_kernel(float* A, float* B, float *C, int M, int N, i
 
 	//big loop iterate tile by tile
 	for (int q = 0; q < (ceil((float)K/TILE_WIDTH3)); ++q) {
-       // Collaborative loading of M and N tiles into shared memory
+       // Collaborative loading of AB tiles into shared memory
 		if (Row < M && (q*TILE_WIDTH3 + tx) < K)
-			subTileA[ty][tx] = M[Row*K + (q*TILE_WIDTH3+tx)];
+			subTileA[ty][tx] = A[Row*K + (q*TILE_WIDTH3+tx)];
 		else
 			subTileA[ty][tx] = 0;
 
 		if (Col < N && (q*TILE_WIDTH3 + ty) < K)
-			subTileB[ty][tx] = N[(q*TILE_WIDTH3+ty)*N+Col];
+			subTileB[ty][tx] = B[(q*TILE_WIDTH3+ty)*N+Col];
 		else
 			subTileB[ty][tx] = 0;
 		__syncthreads();  //must needed for correct tile loading instead of overload
 		for (int k = 0; k < TILE_WIDTH3; ++k)
-			Pvalue += subTileM[ty][k] * subTileN[k][tx];
+			Pvalue += subTileA[ty][k] * subTileB[k][tx];
 		__syncthreads();  //make sure everyone complete calculate
 	}
 	if(Row < M && Col < N)
