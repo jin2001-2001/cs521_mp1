@@ -128,7 +128,8 @@ void gemm_gpu_o1(float* A, float* B, float* C, int M, int N, int K)
 
 }
 
-#define TILE_WIDTH2 16
+#define BlockW2 32
+#define TILE_WIDTH2 32
 __global__ void gemm_gpu_o2_kernel(float* A, float* B, float *C, int M, int N, int K) {
 
 	__shared__ float subTileA[TILE_WIDTH2][TILE_WIDTH2];
@@ -165,14 +166,14 @@ __global__ void gemm_gpu_o2_kernel(float* A, float* B, float *C, int M, int N, i
 void gemm_gpu_o2(float* A, float* B, float* C, int M, int N, int K)
 {
 	// Init block and grid size
-	dim3 dimGrid(ceil((1.0*M)/BlockW),ceil((1.0*N)/BlockW), 1);
-	dim3 dimBlock(BlockW, BlockW, 1);
+	dim3 dimGrid(ceil((1.0*M)/BlockW2),ceil((1.0*N)/BlockW2), 1);
+	dim3 dimBlock(BlockW2, BlockW2, 1);
 	gemm_gpu_o2_kernel<<<dimGrid, dimBlock>>>(A, B, C, M, N, K);
 }
 
 
-#define BlockW3 32
-#define TILE_WIDTH3 32
+#define BlockW3 16
+#define TILE_WIDTH3 16
 
 __global__ void gemm_gpu_o3_kernel(float* A, float* B, float *C, int M, int N, int K) {
 	//code is the same as o2 kernel, but with hyperparameter change...
