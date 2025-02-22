@@ -181,8 +181,8 @@ __global__ void gemm_gpu_o3_kernel(float* A, float* B, float *C, int M, int N, i
 	int bx = blockIdx.x;  int by = blockIdx.y;
 	int tx = threadIdx.x; int ty = threadIdx.y;
 
-	int Row = by * TILE_WIDTH + ty;
-	int Col = bx * TILE_WIDTH + tx;
+	int Row = by * TILE_WIDTH3 + ty;
+	int Col = bx * TILE_WIDTH3 + tx;
 	float Pvalue = 0;
 
 	//big loop iterate tile by tile
