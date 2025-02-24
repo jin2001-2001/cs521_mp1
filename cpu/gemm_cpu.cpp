@@ -45,15 +45,79 @@ void gemm_cpu_o0(float* A, float* B, float *C, int M, int N, int K) {
 // Your optimized implementations go here
 // note that for o4 you don't have to change the code, but just the compiler flags. So, you can use o3's code for that part
 void gemm_cpu_o1(float* A, float* B, float *C, int M, int N, int K) {
+	for (int i = 0; i < M; i++) {
+		for (int k = 0; k < K; k++) {
+			for (int j = 0; j < N; j++) {
+				C[i * N + j]  += A[i * K + k]  * B[k * N + j];
+		  	}
+		}
+	}
 
 }
 
-void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 
+
+void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
+	//calculate the suitable tilesize
+	//thinking L1 Cache as 32KB,
+	// 4B*(64*64+2*(64*tS)) = 32kB
+	//assume per cache line is 64b
+	//
+	tileSize = 32
+
+	for (int rowTile = 0; rowTile < M; rowTile += 64) {
+		for (int columnTile = 0; columnTile < N; columnTile += 64) {
+			for (int innerTile = 0; innerTile < K; innerTile += tileSize) {
+				//do the work tile by tile
+				//here, for simplification, row == i, column == j, inner index == k
+				for (int row = rowTile; row < rowTile + 64; row++) {
+
+					//for inner loop, we need to indicate the end point... cause not aligned prob
+			  		int innerTileEnd = 0;
+					if (K<=innerTile + tileSize) innerTileEnd = K;
+					else innerTileEnd = innerTile + tileSize;
+
+			  		for (int inner = innerTile; inner < innerTileEnd; inner++) {
+						for (int col = columnTile; col < columnTile + 64; col++) {
+				  			C[row * columns + col] +=
+						  	A[row * inners + inner] * B[inner * columns + col];
+						} 
+					} 
+				} 
+			} 
+		} 
+	}
 }
 
 void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
+//same code as o3. Ref: https://siboehm.com/articles/22/Fast-MMM-on-CPU
 
+	tileSize = 32
+
+	//default(none) forces the explict declare of shared var(So, the ohter will be private automatically)
+	#pragma omp parallel for shared(A, B, C) default(none) collapse(2) num_threads(8)
+	for (int rowTile = 0; rowTile < M; rowTile += 64) {
+		for (int columnTile = 0; columnTile < N; columnTile += 64) {
+			for (int innerTile = 0; innerTile < K; innerTile += tileSize) {
+				//do the work tile by tile
+				//here, for simplification, row == i, column == j, inner index == k
+				for (int row = rowTile; row < rowTile + 64; row++) {
+
+					//for inner loop, we need to indicate the end point... cause not aligned prob
+			  		int innerTileEnd = 0;
+					if (K<=innerTile + tileSize) innerTileEnd = K;
+					else innerTileEnd = innerTile + tileSize;
+
+			  		for (int inner = innerTile; inner < innerTileEnd; inner++) {
+						for (int col = columnTile; col < columnTile + 64; col++) {
+				  			C[row * columns + col] +=
+						  	A[row * inners + inner] * B[inner * columns + col];
+						} 
+					} 
+				} 
+			} 
+		} 
+	}
 }
 
 
