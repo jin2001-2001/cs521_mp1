@@ -94,15 +94,12 @@ void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
 //same code as o3. Ref: https://siboehm.com/articles/22/Fast-MMM-on-CPU
 
-	int rowTile; 
-	int columnTile;
-	int innerTile;
 
 	//default(none) forces the explict declare of shared var(So, the ohter will be private automatically)
 	#pragma omp parallel for shared(A, B, C, M, N, K) default(none) collapse(2) num_threads(8)
-	for ( rowTile = 0; rowTile < M; rowTile += 64) {
-		for ( columnTile = 0; columnTile < N; columnTile += 64) {
-			for ( innerTile = 0; innerTile < K; innerTile += tileSize) {
+	for ( int rowTile = 0; rowTile < M; rowTile += 64) {
+		for ( int columnTile = 0; columnTile < N; columnTile += 64) {
+			for ( int innerTile = 0; innerTile < K; innerTile += tileSize) {
 				//do the work tile by tile
 				//here, for simplification, row == i, column == j, inner index == k
 				for (int row = rowTile; row < rowTile + 64; row++) {
