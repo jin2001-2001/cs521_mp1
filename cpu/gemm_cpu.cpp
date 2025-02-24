@@ -113,7 +113,11 @@ void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
 			for ( int innerTile = 0; innerTile < K; innerTile += tileSize) {
 				//do the work tile by tile
 				//here, for simplification, row == i, column == j, inner index == k
-				for (int row = rowTile; row < rowTile + 64; row++) {
+				int rowTileEnd = 0;
+				if (M<=rowTile + 64) rowTileEnd = M;
+				else rowTileEnd = rowTile + 64;
+
+				for (int row = rowTile; row < rowTileEnd; row++) {
 
 					//for inner loop, we need to indicate the end point... cause not aligned prob
 			  		int innerTileEnd = 0;
@@ -121,7 +125,12 @@ void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
 					else innerTileEnd = innerTile + tileSize;
 
 			  		for (int inner = innerTile; inner < innerTileEnd; inner++) {
-						for (int col = columnTile; col < columnTile + 64; col++) {
+
+						int coumnTileEnd = 0;
+						if (N<=columnTile + 64) coumnTileEnd = N;
+						else coumnTileEnd = coumnTileEnd + 64;
+
+						for (int col = columnTile; col < coumnTileEnd; col++) {
 				  			C[row * N + col] +=
 						  	A[row * K + inner] * B[inner * N + col];
 						} 
