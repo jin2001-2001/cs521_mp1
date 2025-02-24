@@ -55,7 +55,7 @@ void gemm_cpu_o1(float* A, float* B, float *C, int M, int N, int K) {
 
 }
 
-
+#define tileSize 32
 
 void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 	//calculate the suitable tilesize
@@ -63,6 +63,9 @@ void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 	// 4B*(64*64+2*(64*tS)) = 32kB
 	//assume per cache line is 64b
 	//
+	int rowTile; 
+	int columnTile;
+	int innerTile;
 
 	for (rowTile = 0; rowTile < M; rowTile += 64) {
 		for (columnTile = 0; columnTile < N; columnTile += 64) {
@@ -78,8 +81,8 @@ void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 
 			  		for (int inner = innerTile; inner < innerTileEnd; inner++) {
 						for (int col = columnTile; col < columnTile + 64; col++) {
-				  			C[row * columns + col] +=
-						  	A[row * inners + inner] * B[inner * columns + col];
+				  			C[row * N + col] +=
+						  	A[row * K + inner] * B[inner * N + col];
 						} 
 					} 
 				} 
@@ -91,7 +94,6 @@ void gemm_cpu_o2(float* A, float* B, float *C, int M, int N, int K) {
 void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
 //same code as o3. Ref: https://siboehm.com/articles/22/Fast-MMM-on-CPU
 
-	int tileSize = 32;
 	int rowTile; 
 	int columnTile;
 	int innerTile;
@@ -112,8 +114,8 @@ void gemm_cpu_o3(float* A, float* B, float *C, int M, int N, int K) {
 
 			  		for (int inner = innerTile; inner < innerTileEnd; inner++) {
 						for (int col = columnTile; col < columnTile + 64; col++) {
-				  			C[row * columns + col] +=
-						  	A[row * inners + inner] * B[inner * columns + col];
+				  			C[row * N + col] +=
+						  	A[row * K + inner] * B[inner * N + col];
 						} 
 					} 
 				} 
