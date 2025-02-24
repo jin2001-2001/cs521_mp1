@@ -172,9 +172,9 @@ int main(int argc, char* argv[]) {
 	CHECK(gemm_cpu_o3)
 	delete[] refC;
 	
-	TIME(gemm_cpu_o0)
-	TIME(gemm_cpu_o1)
-	TIME(gemm_cpu_o2)
+	//TIME(gemm_cpu_o0)
+	//TIME(gemm_cpu_o1)
+	//TIME(gemm_cpu_o2)
 	TIME(gemm_cpu_o3)
 
 	delete[] A;
