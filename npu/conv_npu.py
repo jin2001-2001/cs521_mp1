@@ -123,7 +123,7 @@ def conv2d(X, W, bias):
         bias_indicator = 0
 
         #we do the row tile chunk by chunk: 
-        out_h_tile_size = 2
+        out_h_tile_size = 4
         out_h_tile_amount = (out_height+out_h_tile_size-1) // out_h_tile_size
 
         #here, because conv needs additional lines(the marginal), we need
@@ -164,8 +164,8 @@ def conv2d(X, W, bias):
 
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
-                    #if output_h_start+out_h_i>=out_height:
-                    #    break
+                    if output_h_start+out_h_i>=out_height:
+                        break
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
                                         dtype=nl.float32, buffer=nl.psum
@@ -182,7 +182,7 @@ def conv2d(X, W, bias):
                         input_h_end = input_h_start+out_h_i+filter_height
                         X_input_tile_s= nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
                                                 (input_h_start+out_h_i):(input_h_end),:]
-                                                ,mask=(input_h_end <= input_height)
+                        #                        ,mask=(input_h_end <= input_height)
                         )
 
 
