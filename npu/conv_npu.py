@@ -92,15 +92,16 @@ def conv2d(X, W, bias):
         )
 
     #temperal buffer(be operated by transpose op, so need sbuf type)
-    w_buffer = nl.ndarray(
-        (nl.par_dim(c_out_pmax), c_in_pmax),
-        dtype=W.dtype, buffer=nl.sbuf
-        )    
+
 
     for c_out_i in nl.affine_range(n_tiles_c_out):
         for c_in_i in nl.affine_range(n_tiles_c_in):
             for f_h in nl.affine_range(filter_height):
                 for f_w in nl.affine_range(filter_width):
+                    w_buffer = nl.ndarray(
+                        (nl.par_dim(c_out_pmax), c_in_pmax),
+                        dtype=W.dtype, buffer=nl.sbuf
+                        )    
                     w_buffer[:,:] = nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
                         )
