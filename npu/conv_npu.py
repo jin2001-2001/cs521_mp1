@@ -156,10 +156,13 @@ def conv2d(X, W, bias):
             for c_out_tile_i in nl.affine_range(n_tiles_c_out):
 
                 #each time, generate a whole size output matrix(psum register)
-                Output_tiles= nl.zeros((c_out_pmax, out_h_tile_size, 
-                                          out_width), 
-                                        dtype = X.dtype, buffer=nl.sbuf
-                                )
+
+
+                #Output_tiles= nl.zeros((c_out_pmax, out_h_tile_size, 
+                #                          out_width), 
+                #                        dtype = X.dtype, buffer=nl.sbuf
+                #                )
+
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
                     Output_row = nl.zeros((c_out_pmax, 
@@ -181,12 +184,12 @@ def conv2d(X, W, bias):
                     bias_vertical_vec = nl.load(bias[c_out_tile_i*c_out_pmax:(c_out_tile_i+1)*c_out_pmax])
                          
                     Output_row = nisa.tensor_scalar(Output_row, np.add, bias_vertical_vec)
-                    Output_tiles[:, out_h_i,:] = nl.copy(Output_row)
+                    #Output_tiles[:, out_h_i,:] = nl.copy(Output_row)
                 #now Ouput_tiles is calculated completely::
-                c_out_tile_start = c_out_tile_i*c_out_pmax
-                c_out_tile_end = c_out_tile_start+c_out_pmax
-                nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,output_h_start:output_h_end ],
-                        Output_tiles )
+                    c_out_tile_start = c_out_tile_i*c_out_pmax
+                    c_out_tile_end = c_out_tile_start+c_out_pmax
+                    nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,output_h_start+out_h_i ],
+                        Output_row )
                       
     return X_out
 
