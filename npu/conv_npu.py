@@ -179,7 +179,7 @@ def conv2d(X, W, bias):
                         )
                     bias_vertical_vec = nl.load(bias[c_out_tile_i*c_out_pmax, (c_out_tile_i+1)*c_out_pmax])
                          
-                    Output_row = nisa.tensor_scalar(Output_row, np.add, bias_vertical_vec)
+                    Output_row = nisa.tensor_scalar(Output_row, np.add, bias_vertical_vec[:, None])
                     Output_tiles[:, out_h_i,:] = nl.copy(Output_row)
                 #now Ouput_tiles is calculated completely::
                 c_out_tile_start = c_out_tile_i*c_out_pmax
