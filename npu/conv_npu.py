@@ -158,13 +158,13 @@ def conv2d(X, W, bias):
                 #each time, generate a whole size output matrix(psum register)
                 Output_tiles= nl.zeros((c_out_pmax, out_h_tile_size, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
+                                        dtype = X.dtype, buffer=nl.sbuf
                                 )
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
+                                        dtype = X.dtype, buffer=nl.sbuf
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         for f_i in nl.affine_range(filter_height):
