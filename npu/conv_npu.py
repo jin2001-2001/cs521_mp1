@@ -123,7 +123,7 @@ def conv2d(X, W, bias):
         bias_indicator = 0
 
         #we do the row tile chunk by chunk: 
-        out_h_tile_size = 2
+        out_h_tile_size = 4
         out_h_tile_amount = (out_height+out_h_tile_size-1) // out_h_tile_size
 
         #here, because conv needs additional lines(the marginal), we need
