@@ -100,7 +100,7 @@ def conv2d(X, W, bias):
                 for f_w in nl.affine_range(filter_width):
                     w_buffer = nl.ndarray(
                         (nl.par_dim(c_out_pmax), c_in_pmax),
-                        dtype=W.dtype, buffer=nl.psum
+                        dtype=W.dtype, buffer=nl.sbuf
                         )    
                     w_buffer= nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
