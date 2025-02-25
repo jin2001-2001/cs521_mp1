@@ -98,10 +98,10 @@ def conv2d(X, W, bias):
         for c_in_i in nl.affine_range(n_tiles_c_in):
             for f_h in nl.affine_range(filter_height):
                 for f_w in nl.affine_range(filter_width):
-                    w_buffer = nl.ndarray(                       
+                    w_buffer = nl.ndarray(
                         (nl.par_dim(c_out_pmax), c_in_pmax),
-                        dtype=W.dtype, buffer=nl.sbuf
-                        )
+                        dtype=W.dtype, buffer=nl.psum
+                        )    
                     w_buffer= nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
                         )
@@ -158,13 +158,13 @@ def conv2d(X, W, bias):
                 #each time, generate a whole size output matrix(psum register)
                 Output_tiles= nl.zeros((c_out_pmax, out_h_tile_size, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum 
+                                        dtype = X.dtype, buffer=nl.psum
                                 )
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.sbuf
+                                        dtype = X.dtype, buffer=nl.psum
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         for f_i in nl.affine_range(filter_height):
@@ -176,7 +176,7 @@ def conv2d(X, W, bias):
                               )
                     #final, add the bias.
                     bias_vertical_vec = nl.ndarray(
-                    (nl.par_dim(c_out_pmax),1), dtype=bias.dtype, buffer=nl.psum
+                    (nl.par_dim(c_out_pmax),1), dtype=bias.dtype, buffer=nl.sbuf
                         )
                     bias_vertical_vec = nl.load(bias[c_out_tile_i*c_out_pmax:(c_out_tile_i+1)*c_out_pmax])
                          
