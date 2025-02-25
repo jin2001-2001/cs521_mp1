@@ -77,7 +77,7 @@ def conv2d(X, W, bias):
 
     W_origin = nl.ndarray(
         (n_tiles_c_out, nl.par_dim(c_out_pmax), n_tiles_c_in, c_in_pmax, filter_height, filter_width),
-        dtype=W.dtype, buffer=nl.hbm
+        dtype=W.dtype, buffer=nl.sbuf
         ) 
     #load the value from device mem to sbuf by whole chunk
     for c_out_i in nl.affine_range(n_tiles_c_out):
@@ -102,11 +102,9 @@ def conv2d(X, W, bias):
                         (nl.par_dim(c_out_pmax), c_in_pmax),
                         dtype=W.dtype, buffer=nl.sbuf
                         )    
-                    #w_buffer= nl.copy(
-                    #    W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
-                    #    )
-                    w_buffer = nl.load(W_origin[c_out_i, :, c_in_i, :, f_h, f_w])
-
+                    w_buffer= nl.copy(
+                        W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
+                        )
                     W_t[f_h, f_w, c_out_i, c_in_i] = nisa.nc_transpose(w_buffer)
 
 
@@ -141,15 +139,15 @@ def conv2d(X, W, bias):
             #generate a bsuf tile for X loaded:
 
             #choose the specific x block here; satisfy necessary chunk
-            X_input_tile = nl.ndarray(
-                shape=(n_tiles_c_in,nl.par_dim(c_in_pmax), input_h_tile_size, input_width),
-                dtype=X.dtype,
-                buffer=nl.sbuf
-            )
+            #X_input_tile = nl.ndarray(
+            #    shape=(n_tiles_c_in,nl.par_dim(c_in_pmax), input_h_tile_size, input_width),
+            #    dtype=X.dtype,
+            #    buffer=nl.sbuf
+            #)
             #load X tile value(only for specific input conv tile)
-            for tile_i in nl.affine_range(n_tiles_c_in):
-                X_input_tile[tile_i] = nl.load(X[b_i, (tile_i)*c_in_pmax:(tile_i+1)*c_in_pmax,
-                                     (input_h_start):(input_h_end),:])
+            #for tile_i in nl.affine_range(n_tiles_c_in):
+            #    X_input_tile[tile_i] = nl.load(X[b_i, (tile_i)*c_in_pmax:(tile_i+1)*c_in_pmax,
+            #                         (input_h_start):(input_h_end),:])
      
 
 
@@ -172,11 +170,22 @@ def conv2d(X, W, bias):
                                         dtype = X.dtype, buffer=nl.sbuf
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
+                        #smaller x_input_tiles:
+                        X_input_tile_s = nl.ndarray(
+                        shape=(nl.par_dim(c_in_pmax), filter_height, input_width),
+                        dtype=X.dtype,
+                        buffer=nl.sbuf
+                        )
+                        X_input_tile_s= nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
+                                                 (input_h_start+out_h_i):(input_h_start+out_h_i+filter_height),:])
+
+
                         for f_i in nl.affine_range(filter_height):
                             for f_j in nl.affine_range(filter_width):
                               Output_row+= nl.matmul(
                                   W_t[f_i,f_j,c_out_tile_i, c_in_tile_i],
-                                  X_input_tile[c_in_tile_i,:,out_h_i+f_i, f_j:f_j+out_width],
+                                  #X_input_tile[c_in_tile_i,:,out_h_i+f_i, f_j:f_j+out_width],
+                                  X_input_tile_s[:,f_i, f_j:f_j+out_width],
                                   transpose_x = True
                               )
                     #final, add the bias.
