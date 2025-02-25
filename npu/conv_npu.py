@@ -170,7 +170,7 @@ def conv2d(X, W, bias):
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         #smaller x_input_tiles:
-                        X_input_tile_s = nl.ndarray(
+                        X_input_tile_s = nl.zeros(
                         shape=(nl.par_dim(c_in_pmax), filter_height, input_width),
                         dtype=X.dtype,
                         buffer=nl.sbuf
@@ -203,7 +203,7 @@ def conv2d(X, W, bias):
                     c_out_tile_start = c_out_tile_i*c_out_pmax
                     c_out_tile_end = c_out_tile_start+c_out_pmax
                     nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,output_h_start+out_h_i ],
-                        Output_row)
+                        Output_row, mask=(output_h_start+out_h_i<out_height))
                       
     return X_out
 
