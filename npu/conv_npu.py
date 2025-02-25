@@ -101,7 +101,7 @@ def conv2d(X, W, bias):
         for c_in_i in nl.affine_range(n_tiles_c_in):
             for f_h in nl.affine_range(filter_height):
                 for f_w in nl.affine_range(filter_width):
-                    w_buffer[...] = nl.copy(
+                    w_buffer[:,:] = nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
                         )
                     W_t[f_h, f_w, c_out_i, c_in_i] = nisa.nc_transpose(w_buffer)
