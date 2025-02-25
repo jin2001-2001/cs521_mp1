@@ -146,7 +146,7 @@ def conv2d(X, W, bias):
             )
             #load X tile value(only for specific input conv tile)
             for tile_i in nl.affine_range(n_tiles_c_in):
-                X_input_tile[tile_i] = nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
+                X_input_tile[tile_i] = nl.load(X[b_i, (tile_i)*c_in_pmax:(tile_i+1)*c_in_pmax,
                                      (input_h_start):(input_h_end),:])
      
 
