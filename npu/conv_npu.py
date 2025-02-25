@@ -109,15 +109,6 @@ def conv2d(X, W, bias):
 
 
 
-    out_h_tile_size = 2
-    out_h_tile_amount = (out_height+out_h_tile_size-1) // out_h_tile_size
-
-    #here, because conv needs additional lines(the marginal), we need
-    #to load additional rows for input to calculate out out_h_tile_size rows of 
-    #output matrix:
-    input_h_tile_size = out_h_tile_size + filter_height - 1
-
-
     #here, let's generate a output matrix for per images output(sbuf register)
     #size overhead test::
 
@@ -131,6 +122,14 @@ def conv2d(X, W, bias):
         #                   " of X[b] with the weights W and bias b and store the result in X_out[b]")
         bias_indicator = 0
 
+        #we do the row tile chunk by chunk: 
+        out_h_tile_size = 4
+        out_h_tile_amount = (out_height+out_h_tile_size-1) // out_h_tile_size
+
+        #here, because conv needs additional lines(the marginal), we need
+        #to load additional rows for input to calculate out out_h_tile_size rows of 
+        #output matrix:
+        input_h_tile_size = out_h_tile_size + filter_height - 1
         for out_h_tile_i in nl.affine_range(out_h_tile_amount): #iterate through row tiles
             input_h_start = out_h_tile_i*out_h_tile_size
             output_h_start = out_h_tile_i*out_h_tile_size
