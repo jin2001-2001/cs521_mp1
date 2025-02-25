@@ -206,7 +206,8 @@ def conv2d(X, W, bias):
                     c_out_tile_start = c_out_tile_i*c_out_pmax
                     c_out_tile_end = c_out_tile_start+c_out_pmax
                     row_ind = output_h_start+out_h_i
-                    nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,row_ind,:],
+                    if row_ind<out_height:
+                        nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,row_ind,:],
                         Output_row
                         #,mask=(row_ind<out_height)
                         )
