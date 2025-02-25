@@ -182,7 +182,7 @@ def conv2d(X, W, bias):
                         input_h_end = input_h_start+out_h_i+filter_height
                         X_input_tile_s= nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
                                                 (input_h_start+out_h_i):(input_h_end),:]
-                        #                        ,mask=(input_h_end <= input_height)
+                                                ,mask=(input_h_end <= input_height)
                         )
 
 
