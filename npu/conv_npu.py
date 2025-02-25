@@ -140,7 +140,7 @@ def conv2d(X, W, bias):
 
             #choose the specific x block here; satisfy necessary chunk
             X_input_tile = nl.ndarray(
-                shape=(n_tiles_c_in,nl.par_dim(c_in_pmax), input_h_tile_size, out_width),
+                shape=(n_tiles_c_in,nl.par_dim(c_in_pmax), input_h_tile_size, input_width),
                 dtype=X.dtype,
                 buffer=nl.sbuf
             )
