@@ -100,9 +100,9 @@ def conv2d(X, W, bias):
                 for f_w in nl.affine_range(filter_width):
                     w_buffer = nl.ndarray(
                         (nl.par_dim(c_out_pmax), c_in_pmax),
-                        dtype=W.dtype, buffer=nl.sbuf
+                        dtype=W.dtype, buffer=nl.psum
                         )    
-                    w_buffer[:,:] = nl.copy(
+                    w_buffer= nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
                         )
                     W_t[f_h, f_w, c_out_i, c_in_i] = nisa.nc_transpose(w_buffer)
@@ -160,18 +160,19 @@ def conv2d(X, W, bias):
                                           out_width), 
                                         dtype = X.dtype, buffer=nl.psum
                                 )
-                Output_row = nl.zeros((c_out_pmax, 
-                                          out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
-                                )
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
+                    Output_row = nl.zeros((c_out_pmax, 
+                                          out_width), 
+                                        dtype = X.dtype, buffer=nl.psum
+                                        )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         for f_i in nl.affine_range(filter_height):
                             for f_j in nl.affine_range(filter_width):
                               Output_row+= nl.matmul(
                                   W_t[f_i,f_j,c_out_tile_i, c_in_tile_i],
-                                  X_input_tile[c_in_tile_i,:,out_h_i+f_i, f_j:f_j+out_width]
+                                  X_input_tile[c_in_tile_i,:,out_h_i+f_i, f_j:f_j+out_width],
+                                  transpose_x = True
                               )
                     #final, add the bias.
                     bias_vertical_vec = nl.ndarray(
