@@ -102,9 +102,11 @@ def conv2d(X, W, bias):
                         (nl.par_dim(c_out_pmax), c_in_pmax),
                         dtype=W.dtype, buffer=nl.sbuf
                         )    
-                    w_buffer= nl.copy(
-                        W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
-                        )
+                    #w_buffer= nl.copy(
+                    #    W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
+                    #    )
+                    w_buffer = nl.load(W_origin[c_out_i, :, c_in_i, :, f_h, f_w])
+
                     W_t[f_h, f_w, c_out_i, c_in_i] = nisa.nc_transpose(w_buffer)
 
 
