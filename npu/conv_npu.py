@@ -174,7 +174,7 @@ def conv2d(X, W, bias):
                         X_input_tile_s = nl.ndarray(
                         shape=(nl.par_dim(c_in_pmax), filter_height, input_width),
                         dtype=X.dtype,
-                        buffer=nl.sbuf
+                        buffer=nl.psum
                         )
                         X_input_tile_s= nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
                                                  (input_h_start+out_h_i):(input_h_start+out_h_i+filter_height),:])
