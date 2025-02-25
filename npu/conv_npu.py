@@ -77,7 +77,7 @@ def conv2d(X, W, bias):
 
     W_origin = nl.ndarray(
         (n_tiles_c_out, nl.par_dim(c_out_pmax), n_tiles_c_in, c_in_pmax, filter_height, filter_width),
-        dtype=W.dtype, buffer=nl.sbuf
+        dtype=W.dtype, buffer=nl.hbm
         ) 
     #load the value from device mem to sbuf by whole chunk
     for c_out_i in nl.affine_range(n_tiles_c_out):
@@ -167,7 +167,7 @@ def conv2d(X, W, bias):
                 for out_h_i in nl.affine_range(out_h_tile_size):
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
+                                        dtype = X.dtype, buffer=nl.sbuf
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         for f_i in nl.affine_range(filter_height):
