@@ -164,8 +164,8 @@ def conv2d(X, W, bias):
 
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
-                    if output_h_start+out_h_i<out_height:
-                        continue
+                    if output_h_start+out_h_i>=out_height:
+                        break
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
                                         dtype=nl.float32, buffer=nl.psum
@@ -207,7 +207,7 @@ def conv2d(X, W, bias):
                     c_out_tile_end = c_out_tile_start+c_out_pmax
                     nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,output_h_start+out_h_i],
                         Output_row
-                        ,mask=(output_h_start+out_h_i<out_height)
+                        #,mask=(output_h_start+out_h_i<out_height)
                         )
                       
     return X_out
