@@ -98,9 +98,9 @@ def conv2d(X, W, bias):
         for c_in_i in nl.affine_range(n_tiles_c_in):
             for f_h in nl.affine_range(filter_height):
                 for f_w in nl.affine_range(filter_width):
-                    w_buffer = nl.ndarray(
+                    w_buffer = nl.ndarray(                       #force to be sbuf ...
                         (nl.par_dim(c_out_pmax), c_in_pmax),
-                        dtype=W.dtype, buffer=nl.psum
+                        dtype=W.dtype, buffer=nl.sbuf
                         )    
                     w_buffer= nl.copy(
                         W_origin[c_out_i, :, c_in_i, :, f_h, f_w], dtype=W.dtype
@@ -158,13 +158,13 @@ def conv2d(X, W, bias):
                 #each time, generate a whole size output matrix(psum register)
                 Output_tiles= nl.zeros((c_out_pmax, out_h_tile_size, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
+                                        dtype = X.dtype, buffer=nl.sbuf ##
                                 )
 
                 for out_h_i in nl.affine_range(out_h_tile_size):
                     Output_row = nl.zeros((c_out_pmax, 
                                           out_width), 
-                                        dtype = X.dtype, buffer=nl.psum
+                                        dtype = X.dtype, buffer=nl.sbuf ##
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         for f_i in nl.affine_range(filter_height):
