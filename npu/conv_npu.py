@@ -175,8 +175,11 @@ def conv2d(X, W, bias):
                         dtype=X.dtype,
                         buffer=nl.sbuf
                         )
+
+                        max_row_upbound = max(input_h_start+out_h_i+filter_height, out_height)
+
                         X_input_tile_s= nl.load(X[b_i, (c_in_tile_i)*c_in_pmax:(c_in_tile_i+1)*c_in_pmax,
-                                                 (input_h_start+out_h_i):(input_h_start+out_h_i+filter_height),:])
+                                                 (input_h_start+out_h_i):max_row_upbound,:])
 
 
                         for f_i in nl.affine_range(filter_height):
