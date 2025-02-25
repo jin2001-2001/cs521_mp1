@@ -170,7 +170,7 @@ def conv2d(X, W, bias):
                                         )
                     for c_in_tile_i in nl.affine_range(n_tiles_c_in):
                         #smaller x_input_tiles:
-                        X_input_tile_s = nl.zeros(
+                        X_input_tile_s = nl.ndarray(
                         shape=(nl.par_dim(c_in_pmax), filter_height, input_width),
                         dtype=X.dtype,
                         buffer=nl.sbuf
