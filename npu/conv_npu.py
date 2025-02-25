@@ -205,9 +205,10 @@ def conv2d(X, W, bias):
                     #now Ouput_tiles is calculated completely::
                     c_out_tile_start = c_out_tile_i*c_out_pmax
                     c_out_tile_end = c_out_tile_start+c_out_pmax
-                    nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,output_h_start+out_h_i],
+                    row_ind = output_h_start+out_h_i
+                    nl.store(X_out[b_i,c_out_tile_start:c_out_tile_end,row_ind,:],
                         Output_row
-                        ,mask=(output_h_start+out_h_i<out_height)
+                        ,mask=(row_ind<out_height)
                         )
                       
     return X_out
